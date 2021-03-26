@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: nfs-akasha
+  labels:
+    name: k3s-storage
+spec:
+  storageClassName: manual
+  capacity:
+    storage: 200Gi
+  accessModes:
+    - ReadWriteMany
+    - ReadWriteOnce
+  nfs:
+    server: akasha.vexing.lan
+    path: "/data/cluster-storage"

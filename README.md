@@ -1,5 +1,26 @@
 # Rancher k3s Pi Cluster
 
+The purpose of this project is to learn more about using [k3s](https://k3s.io)
+Kubernetes distribution in an edge environment, specifically on a Raspberry Pi
+v4, provided by my company for Pi-Day 2021.
+
+My goals for the project are to:
+
+* Install and run k3s on the pi
+* Experiment with automatic deployment of manifests
+* Experiment with adding a storage provider via a network NFS share
+* Install and configure Tekton and other tools via automatic deployment
+* Assemble a build pipeline for compiling Rust binaries for ARM
+
+My project today consists of a single k3s node. I have questions I would like to
+answer that may or may not be done today:
+
+* Can k3s clusters be run across processor architectures?
+* Will k3s schedule workloads across nodes if the processor architecture
+  differs?
+* If so, does k3s manage multiple versions of specific containers when multiple
+  architectures are included?
+
 ## Installation
 
 On the pi:
@@ -67,4 +88,57 @@ kubectl get pv
 
 NAME         CAPACITY   ACCESS MODES   RECLAIM POLICY   STATUS      CLAIM   STORAGECLASS   REASON   AGE
 nfs-akasha   200Gi      RWO,RWX        Retain           Available           manual                  13s
+```
+
+Manifests installed using automatic deployment are managed as add-on custom
+resources, and my NFS provider is no exception:
+
+```shell
+kubectl get addons -A
+
+NAMESPACE     NAME                        AGE
+kube-system   ccm                         85m
+kube-system   coredns                     85m
+kube-system   local-storage               85m
+kube-system   aggregated-metrics-reader   85m
+kube-system   auth-delegator              85m
+kube-system   auth-reader                 85m
+kube-system   metrics-apiservice          85m
+kube-system   metrics-server-deployment   85m
+kube-system   metrics-server-service      85m
+kube-system   resource-reader             85m
+kube-system   rolebindings                85m
+kube-system   traefik                     85m
+kube-system   nfs-provider                44m
+```
+
+## Install Tekton
+
+Learning what we have about automatic installation, this makes installing Tekton
+Pipelines a quick one-liner:
+
+```shell
+sudo wget -O /var/lib/rancher/k3s/server/manifests/tekton-pipeline.yaml https://github.com/tektoncd/pipeline/releases/download/v0.22.0/release.yaml
+```
+
+Right away I see `tekton-pipeline` listed as an addon.
+
+```shell
+kubectl get addons -A
+NAMESPACE     NAME                        AGE
+...
+kube-system   tekton-pipeline             1s
+```
+
+And, the `tekton-pipelines` namespace has been created as I expected.
+
+```shell
+kubectl get ns
+
+NAME               STATUS   AGE
+default            Active   86m
+kube-system        Active   86m
+kube-public        Active   86m
+kube-node-lease    Active   86m
+tekton-pipelines   Active   29s
 ```

@@ -11,6 +11,8 @@ My goals for the project are to:
 * Experiment with adding a storage provider via a network NFS share
 * Install and configure Tekton and other tools via automatic deployment
 * Assemble a build pipeline for compiling Rust binaries for ARM
+* Leverage the k3s Helm CRD
+* Ingress using Traefik
 
 My project today consists of a single k3s node. I have questions I would like to
 answer that may or may not be done today:
@@ -69,7 +71,7 @@ kubectl get namespaces
 My cluster will require storage. k3s is configured by default to use local
 storage for volume claims, but I want my cluster to use an NFS share on my home
 NAS to provide storage instead. To do this, I've written an NFS volume claim,
-found at nfs-claim.yaml. This specifies storage capacity of 200Gi, and
+found in `manifests/nfs-claim.yaml`. This specifies storage capacity of 200Gi, and
 references the NFS share I've set aside on my NAS for the purpose
 
 ## Automatic Deployment
@@ -115,7 +117,7 @@ kube-system   nfs-provider                44m
 ## Install Tekton
 
 Learning what we have about automatic installation, this makes installing Tekton
-Pipelines a quick one-liner:
+Pipelines a quick one-liner. Logged into the pi:
 
 ```shell
 sudo wget -O /var/lib/rancher/k3s/server/manifests/tekton-pipeline.yaml https://github.com/tektoncd/pipeline/releases/download/v0.22.0/release.yaml
@@ -125,6 +127,7 @@ Right away I see `tekton-pipeline` listed as an addon.
 
 ```shell
 kubectl get addons -A
+
 NAMESPACE     NAME                        AGE
 ...
 kube-system   tekton-pipeline             1s
